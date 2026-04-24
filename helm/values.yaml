@@ -1,0 +1,52 @@
+fullnameOverride: pronunt-frontend-service
+
+namespace:
+  create: false
+  name: prism
+
+image:
+  repository: ghcr.io/pronunt/pronunt-frontend-service
+  tag: latest
+  pullPolicy: IfNotPresent
+
+containerPort: 3000
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 3000
+  targetPort: 3000
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: prism.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+
+env:
+  config:
+    NEXT_PUBLIC_AGGREGATOR_API_URL: http://pronunt-aggregator-service:8000
+    NEXT_PUBLIC_APP_NAME: PRISM
+    NEXT_TELEMETRY_DISABLED: "1"
+  secret:
+    FRONTEND_SESSION_SECRET: change-me
+
