@@ -3,11 +3,117 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
+  --background: 8 8 8;
+  --foreground: 245 245 245;
+  --muted: 161 161 170;
+  --border: 38 38 38;
+  --panel: 17 17 17;
+  --panel-strong: 24 24 27;
+  --accent: 229 229 229;
+  --shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 28%),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.06), transparent 18%),
+    linear-gradient(180deg, #050505 0%, #090909 35%, #101010 100%);
 }
 
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  min-height: 100vh;
+  background: transparent;
+  color: rgb(var(--foreground));
+  font-family: var(--font-sans), sans-serif;
 }
 
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.noise-overlay::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.09;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(circle at center, black, transparent 88%);
+}
+
+.panel {
+  background: linear-gradient(180deg, rgba(28, 28, 30, 0.92), rgba(13, 13, 14, 0.96));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+}
+
+.fade-up {
+  animation: fade-up 0.7s ease-out both;
+}
+
+.fade-up-delay {
+  animation: fade-up 0.95s ease-out both;
+}
+
+.float-slow {
+  animation: float-slow 8s ease-in-out infinite;
+}
+
+.pulse-line {
+  animation: pulse-line 5s ease-in-out infinite;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float-slow {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -12px, 0);
+  }
+}
+
+@keyframes pulse-line {
+  0%, 100% {
+    opacity: 0.32;
+    transform: scaleX(0.9);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scaleX(1);
+  }
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.mono {
+  font-family: var(--font-mono), monospace;
+}
