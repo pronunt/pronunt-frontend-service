@@ -15,8 +15,8 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Pronunt PRISM",
-  description: "PR Intelligence & Prioritization Platform"
+  title: "Pronunt",
+  description: "PR Astronaut for pull request intelligence, impact, and prioritization."
 };
 
 export default function RootLayout({
