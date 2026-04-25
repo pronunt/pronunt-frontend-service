@@ -15,3 +15,5 @@ Next.js frontend with TypeScript and shadcn/ui for the PRISM dashboard.
 ## Branching
 
 This repository follows trunk-based development with `main` as the long-lived branch.
+
+CI note: merged PRs should carry the `build` label when image publication is expected.
