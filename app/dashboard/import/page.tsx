@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ArrowRight, FolderGit2, Github, Orbit, ShieldCheck } from "lucide-react";
+import { FolderGit2, Github, Orbit, ShieldCheck } from "lucide-react";
 
 import { DashboardSectionHeading } from "@/components/dashboard/dashboard-section-heading";
 import { GithubConnectPanel } from "@/components/onboarding/github-connect-panel";
+import { GitHubOAuthButton } from "@/components/onboarding/github-oauth-button";
 import { Button } from "@/components/ui/button";
 
 const placeholderRepos = [
@@ -63,12 +64,7 @@ export default function ImportPage() {
               <Button asChild variant="ghost" size="lg" className="sm:min-w-[14rem]">
                 <Link href="/connect">Open connect page</Link>
               </Button>
-              <Button asChild size="lg" className="group sm:min-w-[14rem]">
-                <Link href="/api/v1/auth/github/login">
-                  Continue with GitHub
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </Link>
-              </Button>
+              <GitHubOAuthButton className="group sm:min-w-[14rem]" />
             </div>
           </div>
         </div>

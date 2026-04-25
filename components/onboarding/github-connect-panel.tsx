@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, Github, ShieldCheck, Sparkles } from "lucide-react";
+import { Github, ShieldCheck, Sparkles } from "lucide-react";
 
+import { GitHubOAuthButton } from "@/components/onboarding/github-oauth-button";
 import { Button } from "@/components/ui/button";
 
 const trustPoints = [
@@ -14,8 +15,6 @@ export function GithubConnectPanel({
 }: {
   compact?: boolean;
 }) {
-  const loginHref = "/api/v1/auth/github/login";
-
   return (
     <div className="panel relative overflow-hidden rounded-[2rem] p-6 sm:p-8">
       <div className="absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent pulse-line" />
@@ -37,13 +36,7 @@ export function GithubConnectPanel({
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <Button asChild size="lg" className="group sm:min-w-[18rem]">
-              <Link href={loginHref}>
-                <Github className="mr-2 h-4 w-4" />
-                Continue with GitHub
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Button>
+            <GitHubOAuthButton className="group sm:min-w-[18rem]" />
             <Button asChild variant="ghost" size="lg" className="sm:min-w-[12rem]">
               <Link href="/">Back to landing</Link>
             </Button>
