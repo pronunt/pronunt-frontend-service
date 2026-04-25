@@ -14,9 +14,9 @@ type ButtonProps = ComponentPropsWithoutRef<"button"> & {
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
-  default: "h-11 px-5 text-sm",
-  sm: "h-9 px-4 text-sm",
-  lg: "h-12 px-6 text-sm"
+  default: "min-h-11 px-5 py-3 text-sm",
+  sm: "min-h-9 px-4 py-2.5 text-sm",
+  lg: "min-h-12 px-6 py-3 text-sm"
 };
 
 const variantClasses: Record<ButtonVariant, string> = {
@@ -35,7 +35,7 @@ export function Button({
 }: ButtonProps) {
   const Comp = asChild ? Slot : "button";
   const classes = cn(
-    "inline-flex items-center justify-center rounded-full font-medium transition duration-200",
+    "inline-flex shrink-0 items-center justify-center rounded-full font-medium leading-none whitespace-nowrap transition duration-200",
     sizeClasses[size],
     variantClasses[variant],
     className
