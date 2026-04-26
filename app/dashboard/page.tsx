@@ -1,3 +1,5 @@
+import { CheckCircle2 } from "lucide-react";
+
 import { DashboardSectionHeading } from "@/components/dashboard/dashboard-section-heading";
 import { DashboardOverviewState } from "@/components/dashboard/dashboard-overview-state";
 import { PullRequestFeed } from "@/components/dashboard/pull-request-feed";
