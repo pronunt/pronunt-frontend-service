@@ -3,6 +3,7 @@ import { ArrowRight, CheckCircle2, FolderGit2, Github, Orbit, Radar } from "luci
 
 import { DashboardSectionHeading } from "@/components/dashboard/dashboard-section-heading";
 import { GithubConnectPanel } from "@/components/onboarding/github-connect-panel";
+import { PullRequestFeed } from "@/components/dashboard/pull-request-feed";
 import { Button } from "@/components/ui/button";
 
 const missionSteps = [
@@ -113,6 +114,10 @@ export default function DashboardPage() {
             ))}
           </div>
         </div>
+      </section>
+
+      <section className="panel rounded-[2rem] p-6 sm:p-8">
+        <PullRequestFeed />
       </section>
     </div>
   );
