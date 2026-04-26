@@ -32,6 +32,26 @@ export type ServiceConfigListResponse = {
   total: number;
 };
 
+export type DependencyGraphItem = {
+  service_name: string;
+  depends_on: string[];
+};
+
+export type ImpactDetail = {
+  service_name: string;
+  relationship: string;
+  path: string[];
+  explanation: string;
+};
+
+export type ImpactResponse = {
+  service_name: string;
+  direct_dependencies: string[];
+  downstream_services: string[];
+  impact_summary: string;
+  impact_details: ImpactDetail[];
+};
+
 export type PullRequestItem = {
   id: string;
   repository_full_name: string;
@@ -43,12 +63,7 @@ export type PullRequestItem = {
   risk_score: number;
   priority_score: number;
   impact_summary: string;
-  impact_details: Array<{
-    service_name: string;
-    relationship: string;
-    path: string[];
-    explanation: string;
-  }>;
+  impact_details: ImpactDetail[];
   ai_summary?: string | null;
   html_url?: string | null;
 };

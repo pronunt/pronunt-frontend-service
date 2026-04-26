@@ -64,7 +64,7 @@ export default function ImportPage() {
 
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg" className="group sm:min-w-[14rem]">
-                <Link href="/dashboard">
+                <Link href="/dashboard/prs">
                   Review centralized PRs
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
