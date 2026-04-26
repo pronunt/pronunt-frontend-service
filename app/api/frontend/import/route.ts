@@ -1,3 +1,4 @@
+import { serviceOrigins } from "@/lib/backend/service-origins";
 import { proxyWithSession } from "@/lib/backend/proxy";
 
 type ImportRequest = {
@@ -8,7 +9,7 @@ type ImportRequest = {
 export async function POST(request: Request) {
   const payload = (await request.json()) as ImportRequest;
   const response = await proxyWithSession(
-    request.url,
+    serviceOrigins.ingestion,
     `/api/v1/ingestion/github/repos/${payload.owner}/${payload.name}/pull-requests/sync`,
     {
       body: JSON.stringify({}),
@@ -22,4 +23,3 @@ export async function POST(request: Request) {
     headers: { "Content-Type": response.headers.get("Content-Type") ?? "application/json" }
   });
 }
-

@@ -1,7 +1,8 @@
+import { serviceOrigins } from "@/lib/backend/service-origins";
 import { proxyWithSession } from "@/lib/backend/proxy";
 
 export async function GET(request: Request) {
-  const response = await proxyWithSession(request.url, "/api/v1/auth/me");
+  const response = await proxyWithSession(serviceOrigins.auth, "/api/v1/auth/me");
   const body = await response.text();
 
   return new Response(body, {

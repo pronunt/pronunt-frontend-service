@@ -1,3 +1,4 @@
+import { serviceOrigins } from "@/lib/backend/service-origins";
 import { proxyWithSession } from "@/lib/backend/proxy";
 
 export async function GET(
@@ -5,7 +6,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const response = await proxyWithSession(request.url, `/api/v1/aggregator/prs/${id}`);
+  const response = await proxyWithSession(
+    serviceOrigins.aggregator,
+    `/api/v1/aggregator/prs/${id}`
+  );
   const body = await response.text();
 
   return new Response(body, {
@@ -13,4 +17,3 @@ export async function GET(
     headers: { "Content-Type": response.headers.get("Content-Type") ?? "application/json" }
   });
 }
-
