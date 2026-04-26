@@ -112,18 +112,18 @@ export function DashboardOverviewState() {
             </p>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <Button asChild size="lg" className="group sm:min-w-[16rem]">
-              <Link href="/dashboard/import">
-                {hasPullRequests ? "Import more repositories" : "Choose repositories"}
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Button>
-            {!hasPullRequests ? (
-              <Button asChild variant="ghost" size="lg" className="sm:min-w-[14rem]">
-                <Link href="/dashboard/import">Open import console</Link>
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <Button asChild size="lg" className="group sm:min-w-[16rem]">
+                <Link href="/dashboard/import">
+                  {hasPullRequests ? "Import more repositories" : "Choose repositories"}
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Link>
               </Button>
-            ) : null}
+              <Button asChild variant="ghost" size="lg" className="sm:min-w-[14rem]">
+                <Link href={hasPullRequests ? "/dashboard/prs" : "/dashboard/repos"}>
+                  {hasPullRequests ? "Open PR cockpit" : "Repositories in orbit"}
+                </Link>
+              </Button>
           </div>
 
           {error ? <p className="text-sm text-red-300">{error}</p> : null}

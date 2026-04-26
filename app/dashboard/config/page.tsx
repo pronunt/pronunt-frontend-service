@@ -6,8 +6,8 @@ export default function DashboardConfigPage() {
     <div className="space-y-8">
       <DashboardSectionHeading
         eyebrow="Config"
-        title="Edit the repository graph"
-        description="Inspect and update the tracked service config that feeds impact, ownership, and review context."
+        title="Edit the service config"
+        description="Inspect and update the tracked repository metadata that feeds ownership, criticality, and review context."
       />
 
       <section className="panel rounded-[2rem] p-6 sm:p-8">

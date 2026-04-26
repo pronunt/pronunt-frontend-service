@@ -11,6 +11,7 @@ import type {
 } from "@/lib/api-types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getPriorityTone, getRiskTone } from "@/lib/dashboard/pr-styles";
 
 export function PullRequestFeed() {
   const [pullRequests, setPullRequests] = useState<PullRequestItem[]>([]);
@@ -82,7 +83,12 @@ export function PullRequestFeed() {
 
       <div className="space-y-4">
         {pullRequests.map((pullRequest) => (
-          <div key={pullRequest.id} className="rounded-[1.75rem] border border-white/8 bg-black/30 p-5">
+          <div
+            key={pullRequest.id}
+            className={`rounded-[1.75rem] border bg-black/30 p-5 ${
+              getRiskTone(pullRequest.risk_score).card
+            }`}
+          >
             <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-3">
@@ -100,8 +106,12 @@ export function PullRequestFeed() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <Badge>Risk {pullRequest.risk_score}</Badge>
-                <Badge>Priority {pullRequest.priority_score}</Badge>
+                <Badge className={getRiskTone(pullRequest.risk_score).badge}>
+                  Risk {pullRequest.risk_score}
+                </Badge>
+                <Badge className={getPriorityTone(pullRequest.priority_score).badge}>
+                  Priority {pullRequest.priority_score}
+                </Badge>
               </div>
             </div>
 

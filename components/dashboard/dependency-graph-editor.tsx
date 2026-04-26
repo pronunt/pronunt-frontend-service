@@ -3,11 +3,19 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { RefreshCcw, Save } from "lucide-react";
 
-import type { ServiceConfig, ServiceConfigListResponse } from "@/lib/api-types";
+import type {
+  DependencyGraphItem,
+  ImpactResponse,
+  ServiceConfig,
+  ServiceConfigListResponse
+} from "@/lib/api-types";
 import { Button } from "@/components/ui/button";
 
-function formatDocument(document: ServiceConfig) {
-  return JSON.stringify(document, null, 2);
+function buildDependencyDocument(serviceName: string, dependsOn: string[]): DependencyGraphItem {
+  return {
+    service_name: serviceName,
+    depends_on: [...dependsOn].sort()
+  };
 }
 
 function syntaxHighlightJson(value: string) {
@@ -36,60 +44,19 @@ function syntaxHighlightJson(value: string) {
   );
 }
 
-export function RepositoryConfigEditor() {
-  const [items, setItems] = useState<ServiceConfig[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+export function DependencyGraphEditor() {
+  const [services, setServices] = useState<ServiceConfig[]>([]);
+  const [selectedServiceName, setSelectedServiceName] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const selectedItem = useMemo(
-    () => items.find((item) => item.id === selectedId) ?? null,
-    [items, selectedId]
+  const selectedService = useMemo(
+    () => services.find((item) => item.service_name === selectedServiceName) ?? null,
+    [services, selectedServiceName]
   );
-
-  const loadItems = () => {
-    startTransition(async () => {
-      setError(null);
-
-      try {
-        const response = await fetch("/api/frontend/config/services", { cache: "no-store" });
-        if (!response.ok) {
-          throw new Error("Unable to load configuration graph.");
-        }
-
-        const payload = (await response.json()) as ServiceConfigListResponse;
-        setItems(payload.items);
-
-        const firstItem = payload.items[0] ?? null;
-        setSelectedId((current) =>
-          current && payload.items.some((item) => item.id === current) ? current : firstItem?.id ?? null
-        );
-        setDraft((currentDraft) => {
-          if (currentDraft && currentDraft.trim().length > 0 && selectedId) {
-            return currentDraft;
-          }
-          return firstItem ? formatDocument(firstItem) : "";
-        });
-      } catch (caughtError) {
-        setError(
-          caughtError instanceof Error ? caughtError.message : "Unable to load configuration graph."
-        );
-      }
-    });
-  };
-
-  useEffect(() => {
-    loadItems();
-  }, []);
-
-  useEffect(() => {
-    if (selectedItem) {
-      setDraft(formatDocument(selectedItem));
-    }
-  }, [selectedItem]);
 
   const parsedDraft = useMemo(() => {
     try {
@@ -97,11 +64,65 @@ export function RepositoryConfigEditor() {
         return null;
       }
 
-      return JSON.parse(draft) as ServiceConfig;
+      return JSON.parse(draft) as DependencyGraphItem;
     } catch {
       return null;
     }
   }, [draft]);
+
+  const loadServices = () => {
+    startTransition(async () => {
+      setLoadError(null);
+
+      try {
+        const response = await fetch("/api/frontend/config/services", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("Unable to load tracked services.");
+        }
+
+        const payload = (await response.json()) as ServiceConfigListResponse;
+        setServices(payload.items);
+        if (!selectedServiceName && payload.items[0]) {
+          setSelectedServiceName(payload.items[0].service_name);
+        }
+      } catch (caughtError) {
+        setLoadError(
+          caughtError instanceof Error ? caughtError.message : "Unable to load tracked services."
+        );
+      }
+    });
+  };
+
+  useEffect(() => {
+    loadServices();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedServiceName) {
+      return;
+    }
+
+    startTransition(async () => {
+      setLoadError(null);
+
+      try {
+        const response = await fetch(`/api/frontend/config/impact/${selectedServiceName}`, {
+          cache: "no-store"
+        });
+
+        if (!response.ok) {
+          throw new Error("Unable to load dependency graph.");
+        }
+
+        const payload = (await response.json()) as ImpactResponse;
+        setDraft(JSON.stringify(buildDependencyDocument(payload.service_name, payload.direct_dependencies), null, 2));
+      } catch (caughtError) {
+        setLoadError(
+          caughtError instanceof Error ? caughtError.message : "Unable to load dependency graph."
+        );
+      }
+    });
+  }, [selectedServiceName]);
 
   useEffect(() => {
     if (!draft.trim()) {
@@ -119,37 +140,30 @@ export function RepositoryConfigEditor() {
 
   const saveDraft = () => {
     startTransition(async () => {
-      setError(null);
       setMessage(null);
+      setLoadError(null);
+
+      if (!parsedDraft) {
+        setValidationError("JSON syntax is invalid. Fix the document before saving.");
+        return;
+      }
 
       try {
-        if (!parsedDraft) {
-          setValidationError("JSON syntax is invalid. Fix the document before saving.");
-          return;
-        }
-
-        const response = await fetch("/api/frontend/config/services", {
-          body: JSON.stringify({
-            service_name: parsedDraft.service_name,
-            repository_full_name: parsedDraft.repository_full_name,
-            display_name: parsedDraft.display_name,
-            description: parsedDraft.description ?? null,
-            criticality: parsedDraft.criticality,
-            owners: parsedDraft.owners ?? [],
-            tags: parsedDraft.tags ?? []
-          }),
+        const response = await fetch("/api/frontend/config/dependencies", {
+          body: JSON.stringify(parsedDraft),
           headers: { "Content-Type": "application/json" },
           method: "POST"
         });
 
         if (!response.ok) {
-          throw new Error("Unable to save configuration.");
+          throw new Error("Unable to save dependency graph.");
         }
 
-        setMessage("Configuration saved.");
-        loadItems();
+        setMessage("Dependency graph saved.");
       } catch (caughtError) {
-        setError(caughtError instanceof Error ? caughtError.message : "Unable to save configuration.");
+        setLoadError(
+          caughtError instanceof Error ? caughtError.message : "Unable to save dependency graph."
+        );
       }
     });
   };
@@ -158,22 +172,22 @@ export function RepositoryConfigEditor() {
     <div className="grid gap-6 xl:grid-cols-[280px_1fr]">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-medium text-white">Tracked services</h3>
-          <Button type="button" variant="ghost" size="sm" onClick={loadItems}>
+          <h3 className="text-base font-medium text-white">Services</h3>
+          <Button type="button" variant="ghost" size="sm" onClick={loadServices}>
             <RefreshCcw className="mr-2 h-4 w-4" />
             Refresh
           </Button>
         </div>
 
         <div className="space-y-2">
-          {items.map((item) => (
+          {services.map((item) => (
             <button
               key={item.id}
               type="button"
-              onClick={() => setSelectedId(item.id)}
+              onClick={() => setSelectedServiceName(item.service_name)}
               className={`w-full rounded-[1.25rem] border px-4 py-3 text-left transition ${
-                item.id === selectedId
-                  ? "border-white/20 bg-white/[0.06] text-white"
+                item.service_name === selectedServiceName
+                  ? "border-emerald-400/30 bg-emerald-500/[0.08] text-white"
                   : "border-white/8 bg-black/30 text-zinc-300 hover:border-white/12 hover:bg-white/[0.03]"
               }`}
             >
@@ -189,19 +203,19 @@ export function RepositoryConfigEditor() {
       <div className="space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="text-base font-medium text-white">Service config editor</h3>
+            <h3 className="text-base font-medium text-white">Dependency graph editor</h3>
             <p className="mt-1 text-sm text-zinc-400">
-              Edit the tracked repository config as JSON and save it back into the graph.
+              Edit the direct dependency graph as JSON. Keys are highlighted in green and values stay white.
             </p>
           </div>
-          <Button type="button" size="sm" onClick={saveDraft} disabled={isPending || !selectedItem}>
+          <Button type="button" size="sm" onClick={saveDraft} disabled={isPending || !parsedDraft}>
             <Save className="mr-2 h-4 w-4" />
-            Save config
+            Save graph
           </Button>
         </div>
 
         {validationError ? <p className="text-sm text-amber-300">{validationError}</p> : null}
-        {error ? <p className="text-sm text-red-300">{error}</p> : null}
+        {loadError ? <p className="text-sm text-red-300">{loadError}</p> : null}
         {message ? <p className="text-sm text-emerald-300">{message}</p> : null}
 
         <div className="grid gap-4 xl:grid-cols-2">
@@ -209,8 +223,8 @@ export function RepositoryConfigEditor() {
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             spellCheck={false}
-            className="mono min-h-[32rem] w-full rounded-[1.5rem] border border-white/8 bg-black/40 p-5 text-sm leading-6 text-zinc-200 outline-none transition focus:border-emerald-400/30"
-            placeholder="Select a tracked service to edit its JSON config."
+            className="mono min-h-[28rem] w-full rounded-[1.5rem] border border-white/8 bg-black/40 p-5 text-sm leading-6 text-zinc-200 outline-none transition focus:border-emerald-400/30"
+            placeholder='{\n  "service_name": "opslora-order-service",\n  "depends_on": ["opslora-auth-service"]\n}'
           />
 
           <div className="rounded-[1.5rem] border border-white/8 bg-black/40 p-5">
@@ -225,6 +239,12 @@ export function RepositoryConfigEditor() {
             />
           </div>
         </div>
+
+        {selectedService ? (
+          <div className="rounded-[1.5rem] border border-cyan-400/20 bg-cyan-500/[0.05] p-4 text-sm text-cyan-100">
+            Editing dependency edges for <span className="font-medium">{selectedService.display_name}</span>.
+          </div>
+        ) : null}
       </div>
     </div>
   );
