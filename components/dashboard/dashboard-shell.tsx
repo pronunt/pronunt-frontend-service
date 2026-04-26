@@ -20,7 +20,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             </div>
             <div>
               <p className="mono text-[11px] uppercase tracking-[0.26em] text-zinc-500">Pronunt</p>
-              <h1 className="mt-1 text-base font-medium text-white">PRISM Console</h1>
+              <h1 className="mt-1 text-base font-medium text-white">PR Astronaut</h1>
             </div>
           </div>
 
