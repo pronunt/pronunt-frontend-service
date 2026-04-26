@@ -9,6 +9,7 @@ import type {
   ServiceConfig,
   ServiceConfigListResponse
 } from "@/lib/api-types";
+import { JsonCodeEditor, parseJsonDraft } from "@/components/dashboard/json-code-editor";
 import { Button } from "@/components/ui/button";
 
 function buildDependencyDocument(serviceName: string, dependsOn: string[]): DependencyGraphItem {
@@ -16,32 +17,6 @@ function buildDependencyDocument(serviceName: string, dependsOn: string[]): Depe
     service_name: serviceName,
     depends_on: [...dependsOn].sort()
   };
-}
-
-function syntaxHighlightJson(value: string) {
-  const escaped = value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-
-  return escaped.replace(
-    /("(\\u[\da-fA-F]{4}|\\[^u]|[^\\"])*"\s*:?)|("(\\u[\da-fA-F]{4}|\\[^u]|[^\\"])*")|\b(true|false|null)\b|(-?\d+(?:\.\d+)?(?:[eE][+\-]?\d+)?)/g,
-    (match) => {
-      if (/^".*":$/.test(match)) {
-        return `<span class="text-emerald-300">${match}</span>`;
-      }
-      if (/^"/.test(match)) {
-        return `<span class="text-zinc-100">${match}</span>`;
-      }
-      if (/true|false/.test(match)) {
-        return `<span class="text-sky-200">${match}</span>`;
-      }
-      if (/null/.test(match)) {
-        return `<span class="text-zinc-500">${match}</span>`;
-      }
-      return `<span class="text-white">${match}</span>`;
-    }
-  );
 }
 
 export function DependencyGraphEditor() {
@@ -58,17 +33,8 @@ export function DependencyGraphEditor() {
     [services, selectedServiceName]
   );
 
-  const parsedDraft = useMemo(() => {
-    try {
-      if (!draft.trim()) {
-        return null;
-      }
-
-      return JSON.parse(draft) as DependencyGraphItem;
-    } catch {
-      return null;
-    }
-  }, [draft]);
+  const draftState = useMemo(() => parseJsonDraft<DependencyGraphItem>(draft), [draft]);
+  const parsedDraft = draftState.parsed;
 
   const loadServices = () => {
     startTransition(async () => {
@@ -125,18 +91,8 @@ export function DependencyGraphEditor() {
   }, [selectedServiceName]);
 
   useEffect(() => {
-    if (!draft.trim()) {
-      setValidationError(null);
-      return;
-    }
-
-    if (parsedDraft) {
-      setValidationError(null);
-      return;
-    }
-
-    setValidationError("JSON syntax is invalid. Fix the document before saving.");
-  }, [draft, parsedDraft]);
+    setValidationError(draftState.error);
+  }, [draftState.error]);
 
   const saveDraft = () => {
     startTransition(async () => {
@@ -218,27 +174,13 @@ export function DependencyGraphEditor() {
         {loadError ? <p className="text-sm text-red-300">{loadError}</p> : null}
         {message ? <p className="text-sm text-emerald-300">{message}</p> : null}
 
-        <div className="grid gap-4 xl:grid-cols-2">
-          <textarea
+        <JsonCodeEditor
             value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            spellCheck={false}
-            className="mono min-h-[28rem] w-full rounded-[1.5rem] border border-white/8 bg-black/40 p-5 text-sm leading-6 text-zinc-200 outline-none transition focus:border-emerald-400/30"
+            onChange={setDraft}
             placeholder='{\n  "service_name": "opslora-order-service",\n  "depends_on": ["opslora-auth-service"]\n}'
+            minHeightClassName="min-h-[28rem]"
+            errorLine={draftState.errorLine}
           />
-
-          <div className="rounded-[1.5rem] border border-white/8 bg-black/40 p-5">
-            <p className="mono mb-4 text-[11px] uppercase tracking-[0.26em] text-zinc-500">
-              Compiled preview
-            </p>
-            <pre
-              className="mono overflow-auto whitespace-pre-wrap text-sm leading-7"
-              dangerouslySetInnerHTML={{
-                __html: syntaxHighlightJson(parsedDraft ? JSON.stringify(parsedDraft, null, 2) : draft || "{}")
-              }}
-            />
-          </div>
-        </div>
 
         {selectedService ? (
           <div className="rounded-[1.5rem] border border-cyan-400/20 bg-cyan-500/[0.05] p-4 text-sm text-cyan-100">

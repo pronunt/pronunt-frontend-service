@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { ArrowRight, CheckCircle2, FolderGit2, Lock, RefreshCcw } from "lucide-react";
+import { ArrowRight, CheckCircle2, FolderGit2, Lock, Orbit, RefreshCcw, Sparkles } from "lucide-react";
 
 import type {
   ConnectedRepository,
@@ -99,11 +99,35 @@ export function RepositoryImportView() {
   };
 
   if (isPending && repositories.length === 0) {
-    return <div className="text-sm text-zinc-400">Loading repositories in orbit...</div>;
+    return (
+      <div className="relative overflow-hidden rounded-[1.8rem] border border-white/8 bg-black/25 px-6 py-10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_35%)]" />
+        <div className="relative flex min-h-[20rem] flex-col items-center justify-center text-center">
+          <div className="relative flex h-28 w-28 items-center justify-center">
+            <div className="absolute h-28 w-28 rounded-full border border-white/10" />
+            <div className="absolute h-20 w-20 rounded-full border border-dashed border-cyan-300/30 animate-[spin_8s_linear_infinite]" />
+            <div className="absolute h-12 w-12 rounded-full border border-white/12" />
+            <div className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-100 shadow-[0_0_30px_rgba(207,250,254,0.45)]" />
+            <div className="absolute left-[18%] top-1/2 -translate-y-1/2 rounded-full border border-white/10 bg-black/40 p-2 text-cyan-100 animate-[orbit-two_10s_linear_infinite]">
+              <Orbit className="h-4 w-4" />
+            </div>
+            <div className="absolute left-[72%] top-1/2 -translate-y-1/2 rounded-full border border-white/10 bg-black/40 p-2 text-zinc-100 animate-[orbit-one_8s_linear_infinite]">
+              <Sparkles className="h-4 w-4" />
+            </div>
+          </div>
+          <p className="mono mt-6 text-[11px] uppercase tracking-[0.3em] text-zinc-500">
+            Repository orbit loading
+          </p>
+          <p className="mt-3 max-w-xl text-sm leading-7 text-zinc-400">
+            Pronunt is pulling the connected organization repositories into this intake console.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 overflow-x-hidden">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-base font-medium text-white">Connected repositories</h3>
@@ -120,18 +144,18 @@ export function RepositoryImportView() {
       {error ? <p className="text-sm text-red-300">{error}</p> : null}
       {message ? <p className="text-sm text-emerald-300">{message}</p> : null}
 
-      <div className="grid gap-4">
+      <div className="max-h-[34rem] space-y-4 overflow-y-auto overflow-x-hidden pr-1">
         {repositories.map((repository) => (
           <div key={repository.id} className="rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-5">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-              <div className="space-y-3">
+            <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="min-w-0 flex-1 space-y-3">
                 <div className="flex items-center gap-3">
                   <div className="rounded-2xl border border-white/10 bg-black/40 p-2 text-zinc-100">
                     <FolderGit2 className="h-4 w-4" />
                   </div>
-                  <div>
-                    <h3 className="text-base font-medium text-white">{repository.name}</h3>
-                    <p className="mono mt-1 text-[11px] uppercase tracking-[0.24em] text-zinc-500">
+                  <div className="min-w-0">
+                    <h3 className="truncate text-base font-medium text-white">{repository.name}</h3>
+                    <p className="mono mt-1 break-all text-[11px] uppercase tracking-[0.24em] text-zinc-500">
                       {repository.full_name}
                     </p>
                   </div>
@@ -151,6 +175,7 @@ export function RepositoryImportView() {
               <Button
                 type="button"
                 size="sm"
+                className="shrink-0"
                 onClick={() => importRepository(repository)}
                 disabled={isPending && activeImport === repository.full_name}
               >

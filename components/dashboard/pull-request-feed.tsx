@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { ArrowUpRight, RefreshCcw } from "lucide-react";
 
@@ -14,9 +14,11 @@ import { Button } from "@/components/ui/button";
 import { getPriorityTone, getRiskTone } from "@/lib/dashboard/pr-styles";
 
 export function PullRequestFeed() {
+  const [isPending, startTransition] = useTransition();
   const [pullRequests, setPullRequests] = useState<PullRequestItem[]>([]);
   const [selectedRepositoryCount, setSelectedRepositoryCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const loadPullRequests = async () => {
@@ -48,6 +50,49 @@ export function PullRequestFeed() {
     }
   };
 
+  const refreshOrbitPullRequests = () => {
+    startTransition(async () => {
+      setError(null);
+      setMessage(null);
+
+      try {
+        const response = await fetch("/api/frontend/pull-requests/refresh", {
+          method: "POST"
+        });
+
+        const payload = (await response.json()) as {
+          code?: string;
+          message?: string;
+          repositories_synced?: number;
+          queued_pull_requests?: number;
+          failures?: Array<{ repository_full_name: string; status: number }>;
+        };
+
+        if (!response.ok && response.status !== 207) {
+          throw new Error(payload.message || "Unable to refresh pull requests for repositories in orbit.");
+        }
+
+        if (payload.failures && payload.failures.length > 0) {
+          setError(
+            `Refreshed ${payload.repositories_synced ?? 0} repositories, but ${payload.failures.length} sync request(s) failed.`
+          );
+        } else {
+          setMessage(
+            `Refreshed ${payload.repositories_synced ?? 0} repositories in orbit and queued ${payload.queued_pull_requests ?? 0} open pull request(s).`
+          );
+        }
+
+        await loadPullRequests();
+      } catch (caughtError) {
+        setError(
+          caughtError instanceof Error
+            ? caughtError.message
+            : "Unable to refresh pull requests for repositories in orbit."
+        );
+      }
+    });
+  };
+
   useEffect(() => {
     loadPullRequests();
   }, []);
@@ -65,13 +110,20 @@ export function PullRequestFeed() {
             Every imported repository sends open pull requests into this shared review surface.
           </p>
         </div>
-        <Button type="button" variant="ghost" size="sm" onClick={loadPullRequests}>
-          <RefreshCcw className="mr-2 h-4 w-4" />
-          Refresh
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant="ghost" size="sm" onClick={loadPullRequests} disabled={isLoading || isPending}>
+            <RefreshCcw className="mr-2 h-4 w-4" />
+            Reload list
+          </Button>
+          <Button type="button" size="sm" onClick={refreshOrbitPullRequests} disabled={isPending || selectedRepositoryCount === 0}>
+            <RefreshCcw className={`mr-2 h-4 w-4 ${isPending ? "animate-spin" : ""}`} />
+            Refresh orbit PRs
+          </Button>
+        </div>
       </div>
 
       {error ? <p className="text-sm text-red-300">{error}</p> : null}
+      {message ? <p className="text-sm text-emerald-300">{message}</p> : null}
 
       {pullRequests.length === 0 ? (
         <div className="rounded-[1.5rem] border border-white/8 bg-black/30 p-5 text-sm text-zinc-400">

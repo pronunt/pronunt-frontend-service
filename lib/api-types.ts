@@ -72,3 +72,11 @@ export type PullRequestListResponse = {
   items: PullRequestItem[];
   total: number;
 };
+
+export type PullRequestSummaryResponse = {
+  id: string;
+  pr_uid: string;
+  ai_summary: string;
+  generated_by: string;
+  model: string;
+};

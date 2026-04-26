@@ -1,5 +1,6 @@
 import { serviceOrigins } from "@/lib/backend/service-origins";
 import { proxyWithSession } from "@/lib/backend/proxy";
+import { enforceSessionCooldown, invalidateSessionCache } from "@/lib/backend/request-control";
 
 type ImportRequest = {
   owner: string;
@@ -21,6 +22,11 @@ function buildDisplayName(repositoryName: string) {
 
 export async function POST(request: Request) {
   const payload = (await request.json()) as ImportRequest;
+  const cooldown = await enforceSessionCooldown(`import-repo:${payload.full_name}`, 6_000);
+  if (cooldown) {
+    return cooldown;
+  }
+
   const configResponse = await proxyWithSession(serviceOrigins.config, "/api/v1/config/services", {
     body: JSON.stringify({
       service_name: payload.name,
@@ -51,6 +57,10 @@ export async function POST(request: Request) {
     }
   );
   const body = await ingestionResponse.text();
+
+  if (ingestionResponse.ok) {
+    await invalidateSessionCache(["config-services", "aggregator-prs", "aggregator-pr"]);
+  }
 
   return new Response(body, {
     status: ingestionResponse.status,
