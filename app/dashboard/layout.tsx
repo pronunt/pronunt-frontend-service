@@ -1,10 +1,10 @@
 import { ReactNode } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
+import { validateSessionToken } from "@/lib/backend/proxy";
 
 export default async function DashboardLayout({
   children
@@ -18,22 +18,9 @@ export default async function DashboardLayout({
     redirect("/");
   }
 
-  const headerStore = await headers();
-  const forwardedProto = headerStore.get("x-forwarded-proto") ?? "https";
-  const host = headerStore.get("host");
+  const isValidSession = await validateSessionToken(sessionToken);
 
-  if (!host) {
-    redirect("/");
-  }
-
-  const response = await fetch(`${forwardedProto}://${host}/api/frontend/session-status`, {
-    cache: "no-store",
-    headers: {
-      Cookie: `${SESSION_COOKIE_NAME}=${sessionToken}`
-    }
-  });
-
-  if (!response.ok) {
+  if (!isValidSession) {
     redirect("/");
   }
 

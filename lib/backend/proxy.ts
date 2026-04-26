@@ -8,7 +8,7 @@ export async function getSessionTokenFromCookie() {
 }
 
 export async function proxyWithSession(
-  requestUrl: string,
+  serviceOrigin: string,
   path: string,
   init: RequestInit = {}
 ) {
@@ -21,7 +21,6 @@ export async function proxyWithSession(
     });
   }
 
-  const origin = new URL(requestUrl).origin;
   const headers = new Headers(init.headers ?? {});
   headers.set("Accept", "application/json");
   headers.set("Authorization", `Bearer ${sessionToken}`);
@@ -30,7 +29,7 @@ export async function proxyWithSession(
     headers.set("Content-Type", "application/json");
   }
 
-  const response = await fetch(`${origin}${path}`, {
+  const response = await fetch(`${serviceOrigin}${path}`, {
     ...init,
     headers,
     cache: "no-store"
@@ -39,3 +38,19 @@ export async function proxyWithSession(
   return response;
 }
 
+export async function validateSessionToken(sessionToken: string) {
+  const headers = new Headers({
+    Accept: "application/json",
+    Authorization: `Bearer ${sessionToken}`
+  });
+
+  const response = await fetch(
+    `${process.env.AUTH_SERVICE_URL?.trim() || "http://pronunt-auth-service:8000"}/api/v1/auth/me`,
+    {
+      cache: "no-store",
+      headers
+    }
+  );
+
+  return response.ok;
+}
