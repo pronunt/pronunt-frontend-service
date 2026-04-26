@@ -4,6 +4,7 @@ import { FolderGit2, Github, Orbit, ShieldCheck } from "lucide-react";
 import { DashboardSectionHeading } from "@/components/dashboard/dashboard-section-heading";
 import { GithubConnectPanel } from "@/components/onboarding/github-connect-panel";
 import { GitHubOAuthButton } from "@/components/onboarding/github-oauth-button";
+import { RepositoryImportView } from "@/components/dashboard/repository-import-view";
 import { Button } from "@/components/ui/button";
 
 const placeholderRepos = [
@@ -68,6 +69,10 @@ export default function ImportPage() {
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="panel rounded-[2rem] p-6 sm:p-8">
+        <RepositoryImportView />
       </section>
     </div>
   );
