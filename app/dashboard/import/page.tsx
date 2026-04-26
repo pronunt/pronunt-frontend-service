@@ -1,16 +1,14 @@
 import Link from "next/link";
-import { FolderGit2, Github, Orbit, ShieldCheck } from "lucide-react";
+import { ArrowRight, CheckCircle2, FolderGit2, Orbit } from "lucide-react";
 
 import { DashboardSectionHeading } from "@/components/dashboard/dashboard-section-heading";
-import { GithubConnectPanel } from "@/components/onboarding/github-connect-panel";
-import { GitHubOAuthButton } from "@/components/onboarding/github-oauth-button";
 import { RepositoryImportView } from "@/components/dashboard/repository-import-view";
 import { Button } from "@/components/ui/button";
 
 const placeholderRepos = [
-  "Repository list will appear after GitHub authentication completes.",
-  "Pronunt will let you choose only the services you want in the first review orbit.",
-  "Nothing is imported automatically before you confirm the selection."
+  "Your GitHub session is already active for this dashboard.",
+  "Choose only the repositories you want in the first review orbit.",
+  "Nothing is imported automatically until you confirm each repo."
 ];
 
 export default function ImportPage() {
@@ -18,32 +16,34 @@ export default function ImportPage() {
     <div className="space-y-8">
       <DashboardSectionHeading
         eyebrow="Import"
-        title="Choose repositories after the handshake"
-        description="This page stays empty until GitHub is connected. Once the account is linked, repository selection belongs here."
+        title="Choose the repositories for first orbit"
+        description="Select the repositories that should start feeding pull requests into Pronunt."
       />
 
-      <section className="grid gap-6 xl:grid-cols-[0.94fr_1.06fr]">
-        <GithubConnectPanel compact />
+      <section className="panel rounded-[2rem] p-6 sm:p-8">
+        <RepositoryImportView />
+      </section>
 
+      <section className="grid gap-6 xl:grid-cols-[1.02fr_0.98fr]">
         <div className="panel rounded-[2rem] p-6 sm:p-8">
           <div className="space-y-5">
             <div className="mono inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] uppercase tracking-[0.28em] text-zinc-400">
-              <FolderGit2 className="h-3.5 w-3.5" />
-              Repository selection
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              GitHub connected
             </div>
 
             <div className="space-y-3">
               <h2 className="text-2xl font-semibold tracking-[-0.04em] text-white sm:text-3xl">
-                The repo picker unlocks right after GitHub connects.
+                The cockpit is ready for repository intake.
               </h2>
               <p className="text-base leading-7 text-zinc-400">
-                We keep this surface intentionally empty until the handshake succeeds, so you only see real repositories from the connected account.
+                Pick the repositories that should feed pull request intelligence into this review surface first, then return to the dashboard to review everything in one place.
               </p>
             </div>
 
             <div className="grid gap-3">
               {placeholderRepos.map((item, index) => {
-                const Icon = index === 0 ? Github : index === 1 ? Orbit : ShieldCheck;
+                const Icon = index === 0 ? CheckCircle2 : index === 1 ? FolderGit2 : Orbit;
 
                 return (
                   <div
@@ -62,17 +62,18 @@ export default function ImportPage() {
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Button asChild variant="ghost" size="lg" className="sm:min-w-[14rem]">
-                <Link href="/connect">Open connect page</Link>
+              <Button asChild size="lg" className="group sm:min-w-[14rem]">
+                <Link href="/dashboard">
+                  Review centralized PRs
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Link>
               </Button>
-              <GitHubOAuthButton className="group sm:min-w-[14rem]" />
+              <Button asChild variant="ghost" size="lg" className="sm:min-w-[14rem]">
+                <Link href="/dashboard">Back to dashboard</Link>
+              </Button>
             </div>
           </div>
         </div>
-      </section>
-
-      <section className="panel rounded-[2rem] p-6 sm:p-8">
-        <RepositoryImportView />
       </section>
     </div>
   );
