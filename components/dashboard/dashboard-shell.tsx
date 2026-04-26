@@ -24,9 +24,9 @@ const navigation = [
 
 export function DashboardShell({ children }: { children: ReactNode }) {
   return (
-    <main className="noise-overlay min-h-screen px-4 py-4 sm:px-6 sm:py-6">
-      <div className="mx-auto grid min-h-[calc(100vh-2rem)] max-w-7xl gap-4 lg:grid-cols-[280px_1fr]">
-        <aside className="panel rounded-[2rem] p-5">
+    <main className="noise-overlay fixed inset-0 overflow-hidden px-4 py-4 sm:px-6 sm:py-6">
+      <div className="mx-auto grid h-full max-w-7xl gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <aside className="panel flex h-full flex-col rounded-[2rem] p-5">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-[1.1rem] border border-white/10 bg-white/[0.04]">
               <Waypoints className="h-5 w-5 text-white" />
@@ -73,7 +73,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           </div>
         </aside>
 
-        <section className="panel rounded-[2rem] p-5 sm:p-7">{children}</section>
+        <section className="panel min-h-0 min-w-0 overflow-hidden rounded-[2rem] p-5 sm:p-7">
+          <div className="h-full min-h-0 min-w-0 overflow-y-auto overflow-x-hidden pr-1">{children}</div>
+        </section>
       </div>
     </main>
   );

@@ -38,7 +38,7 @@ export function SelectedRepositoryList() {
   }, []);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 overflow-x-hidden">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-base font-medium text-white">Repositories in orbit</h3>
@@ -62,7 +62,7 @@ export function SelectedRepositoryList() {
         </div>
       ) : null}
 
-      <div className="grid gap-4">
+      <div className="max-h-[34rem] space-y-4 overflow-y-auto overflow-x-hidden pr-1">
         {repositories.map((repository) => (
           <div
             key={repository.id}
@@ -75,9 +75,11 @@ export function SelectedRepositoryList() {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h4 className="text-sm font-medium text-white">{repository.display_name}</h4>
-                  <Badge variant="outline">{repository.criticality}</Badge>
+                  <Badge variant="outline" className="shrink-0">
+                    {repository.criticality}
+                  </Badge>
                 </div>
-                <p className="mono mt-1 truncate text-[11px] uppercase tracking-[0.24em] text-zinc-500">
+                <p className="mono mt-1 break-all text-[11px] uppercase tracking-[0.24em] text-zinc-500">
                   {repository.repository_full_name}
                 </p>
                 {repository.description ? (
