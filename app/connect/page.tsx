@@ -1,10 +1,7 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-
 import { BrandMark } from "@/components/brand/brand-mark";
 import { OrbitScene } from "@/components/marketing/orbit-scene";
+import { ConnectSessionCallback } from "@/components/onboarding/connect-session-callback";
 import { GithubConnectPanel } from "@/components/onboarding/github-connect-panel";
-import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 
 export default async function ConnectPage({
   searchParams
@@ -13,20 +10,6 @@ export default async function ConnectPage({
 }) {
   const resolvedSearchParams = await searchParams;
   const sessionToken = resolvedSearchParams.session_token;
-
-  if (typeof sessionToken === "string" && sessionToken.length > 0) {
-    const cookieStore = await cookies();
-
-    cookieStore.set(SESSION_COOKIE_NAME, sessionToken, {
-      httpOnly: true,
-      maxAge: 60 * 60 * 24,
-      path: "/",
-      sameSite: "lax",
-      secure: true
-    });
-
-    redirect("/dashboard");
-  }
 
   return (
     <main className="noise-overlay relative overflow-hidden">
@@ -38,7 +21,11 @@ export default async function ConnectPage({
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
-          <GithubConnectPanel />
+          {typeof sessionToken === "string" && sessionToken.length > 0 ? (
+            <ConnectSessionCallback sessionToken={sessionToken} />
+          ) : (
+            <GithubConnectPanel />
+          )}
           <OrbitScene />
         </div>
       </section>
