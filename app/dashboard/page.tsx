@@ -3,6 +3,7 @@ import { CheckCircle2 } from "lucide-react";
 import { DashboardSectionHeading } from "@/components/dashboard/dashboard-section-heading";
 import { DashboardOverviewState } from "@/components/dashboard/dashboard-overview-state";
 import { PullRequestFeed } from "@/components/dashboard/pull-request-feed";
+import { SelectedRepositoryList } from "@/components/dashboard/selected-repository-list";
 
 export default function DashboardPage() {
   return (
@@ -41,6 +42,10 @@ export default function DashboardPage() {
             ))}
           </div>
         </div>
+      </section>
+
+      <section className="panel rounded-[2rem] p-6 sm:p-8">
+        <SelectedRepositoryList />
       </section>
 
       <section className="panel rounded-[2rem] p-6 sm:p-8">

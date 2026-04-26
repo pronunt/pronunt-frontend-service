@@ -3,6 +3,7 @@ import { ArrowRight, CheckCircle2, FolderGit2, Orbit } from "lucide-react";
 
 import { DashboardSectionHeading } from "@/components/dashboard/dashboard-section-heading";
 import { RepositoryImportView } from "@/components/dashboard/repository-import-view";
+import { SelectedRepositoryList } from "@/components/dashboard/selected-repository-list";
 import { Button } from "@/components/ui/button";
 
 const placeholderRepos = [
@@ -73,6 +74,10 @@ export default function ImportPage() {
               </Button>
             </div>
           </div>
+        </div>
+
+        <div className="panel rounded-[2rem] p-6 sm:p-8">
+          <SelectedRepositoryList />
         </div>
       </section>
     </div>

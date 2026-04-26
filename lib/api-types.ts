@@ -14,6 +14,24 @@ export type ConnectedRepositoryListResponse = {
   total: number;
 };
 
+export type ServiceCriticality = "low" | "medium" | "high" | "critical";
+
+export type ServiceConfig = {
+  id: string;
+  service_name: string;
+  repository_full_name: string;
+  display_name: string;
+  description?: string | null;
+  criticality: ServiceCriticality;
+  owners: string[];
+  tags: string[];
+};
+
+export type ServiceConfigListResponse = {
+  items: ServiceConfig[];
+  total: number;
+};
+
 export type PullRequestItem = {
   id: string;
   repository_full_name: string;
@@ -39,4 +57,3 @@ export type PullRequestListResponse = {
   items: PullRequestItem[];
   total: number;
 };
-

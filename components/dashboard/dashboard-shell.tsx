@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { Github, LayoutDashboard, Sparkles, Waypoints } from "lucide-react";
+import { Code2, Github, LayoutDashboard, Sparkles, Waypoints } from "lucide-react";
 import { ReactNode } from "react";
 
+import { LogoutButton } from "@/components/dashboard/logout-button";
 import { cn } from "@/lib/utils";
 
 const navigation = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/import", label: "Import Projects", icon: Github }
+  { href: "/dashboard/import", label: "Import Projects", icon: Github },
+  { href: "/dashboard/config", label: "Config Editor", icon: Code2 }
 ];
 
 export function DashboardShell({ children }: { children: ReactNode }) {
@@ -53,6 +55,10 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                 <p className="text-sm text-zinc-400">Ollama / llama3.1:8b</p>
               </div>
             </div>
+          </div>
+
+          <div className="mt-6">
+            <LogoutButton />
           </div>
         </aside>
 

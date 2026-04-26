@@ -1,6 +1,7 @@
 const DEFAULT_AUTH_SERVICE_URL = "http://pronunt-auth-service:8000";
 const DEFAULT_INGESTION_SERVICE_URL = "http://pronunt-ingestion-service:8000";
 const DEFAULT_AGGREGATOR_SERVICE_URL = "http://pronunt-aggregator-service:8000";
+const DEFAULT_CONFIG_SERVICE_URL = "http://pronunt-config-service:8000";
 
 function normalizeOrigin(value: string | undefined, fallback: string) {
   return (value && value.trim()) || fallback;
@@ -15,5 +16,9 @@ export const serviceOrigins = {
   aggregator: normalizeOrigin(
     process.env.AGGREGATOR_SERVICE_URL,
     DEFAULT_AGGREGATOR_SERVICE_URL
+  ),
+  config: normalizeOrigin(
+    process.env.CONFIG_SERVICE_URL,
+    DEFAULT_CONFIG_SERVICE_URL
   )
 };
