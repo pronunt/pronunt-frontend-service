@@ -4,12 +4,17 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, RefreshCcw } from "lucide-react";
 
-import type { PullRequestItem, PullRequestListResponse } from "@/lib/api-types";
+import type {
+  PullRequestItem,
+  PullRequestListResponse,
+  ServiceConfigListResponse
+} from "@/lib/api-types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 export function PullRequestFeed() {
   const [pullRequests, setPullRequests] = useState<PullRequestItem[]>([]);
+  const [selectedRepositoryCount, setSelectedRepositoryCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -18,13 +23,23 @@ export function PullRequestFeed() {
     setError(null);
 
     try {
-      const response = await fetch("/api/frontend/pull-requests", { cache: "no-store" });
-      if (!response.ok) {
+      const [pullRequestResponse, repositoryResponse] = await Promise.all([
+        fetch("/api/frontend/pull-requests", { cache: "no-store" }),
+        fetch("/api/frontend/config/services", { cache: "no-store" })
+      ]);
+
+      if (!pullRequestResponse.ok) {
         throw new Error("Unable to load pull requests.");
       }
 
-      const payload = (await response.json()) as PullRequestListResponse;
+      if (!repositoryResponse.ok) {
+        throw new Error("Unable to load selected repositories.");
+      }
+
+      const payload = (await pullRequestResponse.json()) as PullRequestListResponse;
+      const repositoryPayload = (await repositoryResponse.json()) as ServiceConfigListResponse;
       setPullRequests(payload.items);
+      setSelectedRepositoryCount(repositoryPayload.items.length);
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : "Unable to load pull requests.");
     } finally {
@@ -59,7 +74,9 @@ export function PullRequestFeed() {
 
       {pullRequests.length === 0 ? (
         <div className="rounded-[1.5rem] border border-white/8 bg-black/30 p-5 text-sm text-zinc-400">
-          No pull requests have been imported yet. Connect GitHub and import at least one repository first.
+          {selectedRepositoryCount > 0
+            ? "Selected repositories are in orbit, but there are no open pull requests to display right now."
+            : "No pull requests have been imported yet. Choose at least one repository first."}
         </div>
       ) : null}
 
@@ -106,4 +123,3 @@ export function PullRequestFeed() {
     </div>
   );
 }
-

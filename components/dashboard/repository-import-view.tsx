@@ -1,14 +1,19 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { ArrowRight, FolderGit2, Lock, RefreshCcw } from "lucide-react";
+import { ArrowRight, CheckCircle2, FolderGit2, Lock, RefreshCcw } from "lucide-react";
 
-import type { ConnectedRepository, ConnectedRepositoryListResponse } from "@/lib/api-types";
+import type {
+  ConnectedRepository,
+  ConnectedRepositoryListResponse,
+  ServiceConfigListResponse
+} from "@/lib/api-types";
 import { Button } from "@/components/ui/button";
 
 export function RepositoryImportView() {
   const [isPending, startTransition] = useTransition();
   const [repositories, setRepositories] = useState<ConnectedRepository[]>([]);
+  const [selectedRepositories, setSelectedRepositories] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [activeImport, setActiveImport] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -18,13 +23,24 @@ export function RepositoryImportView() {
       setError(null);
 
       try {
-        const response = await fetch("/api/frontend/repos", { cache: "no-store" });
-        if (!response.ok) {
+        const [reposResponse, selectedResponse] = await Promise.all([
+          fetch("/api/frontend/repos", { cache: "no-store" }),
+          fetch("/api/frontend/config/services", { cache: "no-store" })
+        ]);
+
+        if (!reposResponse.ok) {
           throw new Error("Unable to load connected repositories.");
         }
 
-        const payload = (await response.json()) as ConnectedRepositoryListResponse;
-        setRepositories(payload.items);
+        if (!selectedResponse.ok) {
+          throw new Error("Unable to load selected repositories.");
+        }
+
+        const repoPayload = (await reposResponse.json()) as ConnectedRepositoryListResponse;
+        const selectedPayload = (await selectedResponse.json()) as ServiceConfigListResponse;
+
+        setRepositories(repoPayload.items);
+        setSelectedRepositories(new Set(selectedPayload.items.map((item) => item.repository_full_name)));
       } catch (caughtError) {
         setError(
           caughtError instanceof Error ? caughtError.message : "Unable to load connected repositories."
@@ -45,7 +61,14 @@ export function RepositoryImportView() {
 
       try {
         const response = await fetch("/api/frontend/import", {
-          body: JSON.stringify({ name: repository.name, owner: repository.owner }),
+          body: JSON.stringify({
+            name: repository.name,
+            owner: repository.owner,
+            full_name: repository.full_name,
+            private: repository.private,
+            default_branch: repository.default_branch,
+            html_url: repository.html_url
+          }),
           headers: { "Content-Type": "application/json" },
           method: "POST"
         });
@@ -54,7 +77,17 @@ export function RepositoryImportView() {
           throw new Error("Unable to queue repository pull requests.");
         }
 
-        setMessage(`Queued pull requests from ${repository.full_name} into the cockpit.`);
+        const payload = (await response.json()) as {
+          queued_pull_requests?: number;
+          repository_full_name?: string;
+        };
+
+        setSelectedRepositories((current) => new Set(current).add(repository.full_name));
+        setMessage(
+          payload.queued_pull_requests && payload.queued_pull_requests > 0
+            ? `Queued ${payload.queued_pull_requests} open pull request(s) from ${repository.full_name} into the cockpit.`
+            : `${repository.full_name} is now in orbit. There are no open pull requests to ingest right now.`
+        );
       } catch (caughtError) {
         setError(
           caughtError instanceof Error ? caughtError.message : "Unable to queue repository pull requests."
@@ -106,6 +139,12 @@ export function RepositoryImportView() {
                 <div className="flex flex-wrap gap-2 text-sm text-zinc-400">
                   <span>Default branch: {repository.default_branch}</span>
                   <span>{repository.private ? "Private" : "Public"}</span>
+                  {selectedRepositories.has(repository.full_name) ? (
+                    <span className="inline-flex items-center gap-1 text-emerald-300">
+                      <CheckCircle2 className="h-4 w-4" />
+                      In orbit
+                    </span>
+                  ) : null}
                 </div>
               </div>
 
@@ -115,7 +154,13 @@ export function RepositoryImportView() {
                 onClick={() => importRepository(repository)}
                 disabled={isPending && activeImport === repository.full_name}
               >
-                {isPending && activeImport === repository.full_name ? "Importing..." : "Import PRs"}
+                {selectedRepositories.has(repository.full_name)
+                  ? isPending && activeImport === repository.full_name
+                    ? "Syncing..."
+                    : "Sync PRs again"
+                  : isPending && activeImport === repository.full_name
+                    ? "Importing..."
+                    : "Import PRs"}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
@@ -134,4 +179,3 @@ export function RepositoryImportView() {
     </div>
   );
 }
-

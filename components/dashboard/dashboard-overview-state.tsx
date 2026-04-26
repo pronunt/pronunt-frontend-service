@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2, FolderGit2, Orbit, Radar } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import type { PullRequestListResponse } from "@/lib/api-types";
+import type { PullRequestListResponse, ServiceConfigListResponse } from "@/lib/api-types";
 import { Button } from "@/components/ui/button";
 
 const readySteps = [
@@ -36,21 +36,32 @@ const liveSteps = [
 export function DashboardOverviewState() {
   const [isLoading, setIsLoading] = useState(true);
   const [hasPullRequests, setHasPullRequests] = useState(false);
+  const [selectedRepositoryCount, setSelectedRepositoryCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function loadPullRequests() {
+    async function loadDashboardState() {
       try {
-        const response = await fetch("/api/frontend/pull-requests", { cache: "no-store" });
-        if (!response.ok) {
+        const [pullRequestsResponse, repositoriesResponse] = await Promise.all([
+          fetch("/api/frontend/pull-requests", { cache: "no-store" }),
+          fetch("/api/frontend/config/services", { cache: "no-store" })
+        ]);
+
+        if (!pullRequestsResponse.ok) {
           throw new Error("Unable to load pull requests.");
         }
 
-        const payload = (await response.json()) as PullRequestListResponse;
+        if (!repositoriesResponse.ok) {
+          throw new Error("Unable to load selected repositories.");
+        }
+
+        const payload = (await pullRequestsResponse.json()) as PullRequestListResponse;
+        const repositoriesPayload = (await repositoriesResponse.json()) as ServiceConfigListResponse;
         if (!cancelled) {
           setHasPullRequests(payload.items.length > 0);
+          setSelectedRepositoryCount(repositoriesPayload.items.length);
         }
       } catch (caughtError) {
         if (!cancelled) {
@@ -65,7 +76,7 @@ export function DashboardOverviewState() {
       }
     }
 
-    loadPullRequests();
+    loadDashboardState();
 
     return () => {
       cancelled = true;
@@ -73,6 +84,7 @@ export function DashboardOverviewState() {
   }, []);
 
   const missionSteps = hasPullRequests ? liveSteps : readySteps;
+  const hasSelectedRepositories = selectedRepositoryCount > 0;
 
   return (
     <section className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
@@ -87,12 +99,16 @@ export function DashboardOverviewState() {
             <h2 className="text-3xl font-semibold tracking-[-0.05em] text-white sm:text-4xl">
               {hasPullRequests
                 ? "Pull request intelligence is in orbit."
-                : "No repositories are in orbit yet."}
+                : hasSelectedRepositories
+                  ? "Repositories are in orbit. Waiting for live pull requests."
+                  : "No repositories are in orbit yet."}
             </h2>
             <p className="max-w-2xl text-base leading-7 text-zinc-400">
               {hasPullRequests
                 ? "Your imported repositories are already feeding pull requests into Pronunt. Open a PR below or widen the orbit with more repositories."
-                : "Your GitHub session is active. The next step is choosing which repositories should start sending pull requests into the review graph."}
+                : hasSelectedRepositories
+                  ? `${selectedRepositoryCount} selected repositor${selectedRepositoryCount === 1 ? "y is" : "ies are"} already configured. Pronunt will surface pull requests here as soon as they open.`
+                  : "Your GitHub session is active. The next step is choosing which repositories should start sending pull requests into the review graph."}
             </p>
           </div>
 
