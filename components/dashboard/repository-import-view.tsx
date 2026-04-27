@@ -144,7 +144,7 @@ export function RepositoryImportView() {
       {error ? <p className="text-sm text-red-300">{error}</p> : null}
       {message ? <p className="text-sm text-emerald-300">{message}</p> : null}
 
-      <div className="max-h-[34rem] space-y-4 overflow-y-auto overflow-x-hidden pr-1">
+            <div className="space-y-4 overflow-x-hidden">
         {repositories.map((repository) => (
           <div key={repository.id} className="rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-5">
             <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
