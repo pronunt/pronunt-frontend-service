@@ -74,7 +74,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         </aside>
 
         <section className="panel min-h-0 min-w-0 overflow-hidden rounded-[2rem] p-5 sm:p-7">
-          <div className="h-full min-h-0 min-w-0 overflow-y-auto overflow-x-hidden pr-1">{children}</div>
+          <div className="scrollbar-hidden h-full min-h-0 min-w-0 overflow-y-auto overflow-x-hidden pr-1">
+            {children}
+          </div>
         </section>
       </div>
     </main>

@@ -264,3 +264,12 @@ a {
 .mono {
   font-family: var(--font-mono), monospace;
 }
+
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}

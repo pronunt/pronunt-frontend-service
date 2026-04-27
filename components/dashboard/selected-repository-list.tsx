@@ -62,7 +62,7 @@ export function SelectedRepositoryList() {
         </div>
       ) : null}
 
-      <div className="max-h-[34rem] space-y-4 overflow-y-auto overflow-x-hidden pr-1">
+        <div className="space-y-4 overflow-x-hidden">
         {repositories.map((repository) => (
           <div
             key={repository.id}
